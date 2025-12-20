@@ -1,20 +1,31 @@
-import {  type Request, type Response } from 'express';
+import { type Request, type Response } from 'express';
 import { studentServices } from './student.service.js';
+import studentJoiValidationSchema from './student.validation.js';
 
 const createStudent = async (req: Request, res: Response) => {
   try {
     //get user req and data
     const student = req.body.student;
-    //will call service  fun to send this data
-    const result = await studentServices.createStudentIntoDB(student);
+   
+    // data validation using joi
+    const { error ,value} = studentJoiValidationSchema.validate(student);
+
+      //will call service  fun to send this data
+    const result = await studentServices.createStudentIntoDB(value);
     // send res
     res.status(200).json({
       success: true,
       message: 'student is created successfully !',
       data: result,
     });
+      if(error){
+       res.status(500).json({
+      success: false,
+      message: 'student is not created successfully !',
+      data: error,
+    });
+    }
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       success: false,
       message: 'student is not created successfully !',
@@ -23,46 +34,40 @@ const createStudent = async (req: Request, res: Response) => {
   }
 };
 
-const getAllStudents= async(req:Request,res:Response)=>{
-
-    try{
-       const result = await studentServices.getAllStudentFromDB();
-        res.status(200).json({
+const getAllStudents = async (req: Request, res: Response) => {
+  try {
+    const result = await studentServices.getAllStudentFromDB();
+    res.status(200).json({
       success: true,
       message: 'all student find successfully !',
       data: result,
     });
-
-    }catch (error) {
-    console.log(error);
+  } catch (error) {
     res.status(500).json({
       success: false,
       message: 'Something went wrong !',
       data: error,
     });
   }
-}
-const getSingleStudent= async(req:Request,res:Response)=>{
+};
+const getSingleStudent = async (req: Request, res: Response) => {
+  try {
+    const { studentId } = req.params;
 
-    try{
-        const {studentId} = req.params;
-        
-       const result = await studentServices.getSingleStudentFromDB(studentId);
-        res.status(200).json({
+    const result = await studentServices.getSingleStudentFromDB(studentId);
+    res.status(200).json({
       success: true,
       message: 'student find successfully !',
       data: result,
     });
-
-    }catch (error) {
-    console.log(error);
+  } catch (error) {
     res.status(500).json({
       success: false,
       message: 'Something went wrong !',
       data: error,
     });
   }
-}
+};
 
 export const studentControllers = {
   createStudent,
