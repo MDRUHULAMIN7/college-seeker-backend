@@ -115,13 +115,32 @@ export const getCollegeDetails = async (req: Request, res: Response) => {
 // Get all colleges graduates photos
 export const getGraduates = async (req: Request, res: Response) => {
   try {
-    // Only select college name and graduates array
-    const colleges = await College.find({}, { name: 1, graduates: 1, _id: 0 });
-    res.status(200).json({ success: true, data: colleges });
+    const result = await College.aggregate([
+      { $sort: { rating: -1 } },
+      { $limit: 8 },
+      {
+        $project: {
+          _id: 0,
+          collegeName: "$name",
+          collegeImage: "$image",
+          rating: 1,
+          graduate: { $arrayElemAt: ["$graduates", 0] }, 
+        },
+      },
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
   } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message || "Failed to fetch graduates" });
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to fetch graduates",
+    });
   }
 };
+
 export const getRecommendedResearchPapers = async (
   req: Request,
   res: Response
