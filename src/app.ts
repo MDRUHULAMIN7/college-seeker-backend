@@ -23,7 +23,7 @@ app.use('/api/v1/review', ReviewRoutes);
 
 
 const getAController = (req: Request, res: Response) => {
-  res.send('Server is Running ....');
+  res.send('College Seeker  Server is Running ....');
 };
 
 app.get('/', getAController);
