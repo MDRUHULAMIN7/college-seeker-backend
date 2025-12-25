@@ -4,7 +4,10 @@ import express, {
   type Response,
 } from 'express';
 import cors from 'cors';
-import { StudentRoutes } from './app/modules/student/student.route.js';
+import { UserRoutes } from './app/modules/user/user.routes.js';
+import { CollegeRoutes } from './app/modules/college/college.routes.js';
+import { AdmissionRoutes } from './app/modules/admission/admission.routes.js';
+import { ReviewRoutes } from './app/modules/review/review.routes.js';
 const app: Application = express();
 
 //parser
@@ -12,8 +15,12 @@ app.use(express.json());
 app.use(cors());
 
 //application routes
+app.use('/api/v1/user', UserRoutes);
+app.use('/api/v1/college', CollegeRoutes);
+app.use('/api/v1/admission', AdmissionRoutes);
+app.use('/api/v1/review', ReviewRoutes);
 
-app.use('/api/v1/students', StudentRoutes);
+
 
 const getAController = (req: Request, res: Response) => {
   res.send('Server is Running ....');
