@@ -7,6 +7,7 @@ import cors from 'cors';
 import { UserRoutes } from './app/modules/user/user.routes.js';
 import { ReviewRoutes } from './app/modules/review/review.routes.js';
 import { GenreRoutes } from './app/modules/genre/genre.routes.js';
+import { BookRoutes } from './app/modules/book/book.routes.js';
 const app: Application = express();
 
 //parser
@@ -17,6 +18,7 @@ app.use(cors());
 app.use('/api/v1/user', UserRoutes);
 app.use('/api/v1/review', ReviewRoutes);
 app.use('/api/v1/genre', GenreRoutes);
+app.use('/api/v1/book', BookRoutes);
 
 
 

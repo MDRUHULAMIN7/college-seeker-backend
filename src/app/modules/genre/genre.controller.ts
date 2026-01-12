@@ -143,3 +143,20 @@ export const deleteGenre = async (req: Request, res: Response) => {
     });
   }
 };
+
+// GET ALL GENRE NAMES
+export const getGenreNames = async (req: Request, res: Response) => {
+  try {
+    const genres = await Genre.find().select('_id name').sort({ name: 1 });
+
+    res.status(200).json({
+      success: true,
+      data: genres,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to fetch genre names',
+    });
+  }
+};

@@ -1,10 +1,12 @@
-import type { Types } from "mongoose";
 
-export interface IGenre {
+import type { Types } from 'mongoose';
+
+export interface IBook {
   title: string;
-  author:string;
-  genreId:Types.ObjectId;
+  author: string;
+  genre: Types.ObjectId;
   description: string;
-  summary:string;
-  coverImage:string
+  summary: string;
+  coverImage: string;
 }
+
