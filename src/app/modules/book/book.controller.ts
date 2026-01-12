@@ -7,8 +7,6 @@ import { Genre } from '../genre/genre.model.js';
 export const createBook = async (req: Request, res: Response) => {
   try {
     const { title, author, genre, description, summary, coverImage } = req.body;
-
-    // Validate required fields
     if (!title || !author || !genre || !description || !summary || !coverImage) {
       return res.status(400).json({
         success: false,
@@ -43,7 +41,6 @@ export const createBook = async (req: Request, res: Response) => {
       coverImage,
     });
 
-    // Populate genre details
     const populatedBook = await Book.findById(book._id).populate('genre', 'name');
 
     res.status(201).json({
@@ -69,13 +66,10 @@ export const getBooks = async (req: Request, res: Response) => {
     // Search query
     const search = req.query.search as string;
     
-    // Filter by genres (multi-select)
-    const genres = req.query.genres as string; // Comma-separated genre IDs
+    const genres = req.query.genres as string; 
     
-    // Sort options
-    const sortBy = req.query.sortBy as string; // 'rating', 'mostShelved', 'title'
+    const sortBy = req.query.sortBy as string; 
 
-    // Build query object
     const query: any = {};
 
     // Search by title or author
