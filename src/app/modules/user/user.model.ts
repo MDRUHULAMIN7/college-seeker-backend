@@ -12,15 +12,19 @@ const userSchema = new Schema<IUser>(
       type: String,
       required: [true, 'Email is required'],
       unique: true,
+      trim: true,
+      lowercase: true,
     },
     password: {
       type: String,
       required: [true, 'Password is required'],
       minlength: [6, 'Password cannot be less than 6 characters'],
+      select: false, // Don't return password by default
     },
     photo: {
       type: String,
       required: [true, 'User Photo is required'],
+      default: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
     },
     role: {
       type: String,
@@ -29,8 +33,13 @@ const userSchema = new Schema<IUser>(
     },
   },
   {
-    timestamps: false,
+    timestamps: true, 
   },
 );
+
+// Add index for 
+userSchema.index({ email: 1 });
+userSchema.index({ role: 1 });
+userSchema.index({ createdAt: -1 });
 
 export const User = model<IUser>('User', userSchema);
