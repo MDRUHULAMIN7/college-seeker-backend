@@ -56,7 +56,7 @@ export const createBook = async (req: Request, res: Response) => {
   }
 };
 
-// GET ALL BOOKS WITH PAGINATION, SEARCH, AND FILTERS
+// GET ALL BOOKS
 export const getBooks = async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
@@ -133,7 +133,7 @@ export const getBooks = async (req: Request, res: Response) => {
   }
 };
 
-// GET SINGLE BOOK (FULL DATA)
+// GET SINGLE BOOK 
 export const getBook = async (req: Request, res: Response) => {
   try {
     const book = await Book.findById(req.params.id).populate('genre', 'name description');
