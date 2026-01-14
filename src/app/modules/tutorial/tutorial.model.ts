@@ -15,3 +15,4 @@ const tutorialSchema: Schema<ITutorial> = new Schema({
 );
 const Tutorial = model<ITutorial>("Tutorial ", tutorialSchema);
 export default Tutorial ;
+

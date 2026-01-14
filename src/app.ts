@@ -10,6 +10,7 @@ import { GenreRoutes } from './app/modules/genre/genre.routes.js';
 import { BookRoutes } from './app/modules/book/book.routes.js';
 import { LibraryRoutes } from './app/modules/library/library.routes.js';
 import { TutorialRoutes } from './app/modules/tutorial/tutorial.routes.js';
+import { RecommendationRoutes } from './app/modules/recommendation/recommendation.route.js';
 const app: Application = express();
 
 //parser
@@ -25,6 +26,7 @@ app.use('/api/v1/genre', GenreRoutes);
 app.use('/api/v1/book', BookRoutes);
 app.use('/api/v1/library', LibraryRoutes);
 app.use('/api/v1/tutorial', TutorialRoutes);
+app.use('/api/v1/recommendation', RecommendationRoutes);
 
 
 
