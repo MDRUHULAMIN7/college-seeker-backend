@@ -75,5 +75,10 @@ It provides secure authentication, role-based authorization, and RESTful APIs fo
 - Library
 - Tutorial
 
+<img width="1154" height="620" alt="Screenshot 2026-01-14 220514" src="https://github.com/user-attachments/assets/9de147fc-f795-4ba4-8143-deac34243ee5" />
+<img width="984" height="470" alt="Screenshot 2026-01-14 220529" src="https://github.com/user-attachments/assets/72173529-ebdd-405f-920f-091dcbeeb68a" />
+
+
+
 Client Repo : https://github.com/MDRUHULAMIN7/BookWorm-Frontend
 
