@@ -2,6 +2,7 @@
 import type { Request, Response } from 'express';
 import { Book } from './book.model.js';
 import { Genre } from '../genre/genre.model.js';
+import mongoose from 'mongoose';
 
 // CREATE BOOK
 export const createBook = async (req: Request, res: Response) => {
@@ -63,57 +64,129 @@ export const getBooks = async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 12;
     const skip = (page - 1) * limit;
 
-    // Search query
     const search = req.query.search as string;
-    
-    const genres = req.query.genres as string; 
-    
-    const sortBy = req.query.sortBy as string; 
+    const genres = req.query.genres as string;
+    const sortBy = req.query.sortBy as string;
+    const ratingMin = parseFloat(req.query.ratingMin as string) || 0;
+    const ratingMax = parseFloat(req.query.ratingMax as string) || 5;
 
-    const query: any = {};
+    // Match stage for search & genre
+    const match: any = {};
 
-    // Search by title or author
     if (search) {
-      query.$or = [
+      match.$or = [
         { title: { $regex: search, $options: 'i' } },
         { author: { $regex: search, $options: 'i' } },
       ];
     }
 
-    // Filter by genres (multi-select)
     if (genres) {
-      const genreArray = genres.split(',').map(g => g.trim());
-      query.genre = { $in: genreArray };
+      const genreArray = genres.split(',').map(g => new mongoose.Types.ObjectId(g.trim()));
+      match.genre = { $in: genreArray };
     }
 
-    // Build sort object
-    let sort: any = {};
-    switch (sortBy) {
-      case 'title':
-        sort = { title: 1 };
-        break;
-      case 'rating':
-        // This will need aggregation with reviews, simplified for now
-        sort = { createdAt: -1 };
-        break;
-      case 'mostShelved':
-        // This will need aggregation with user shelves, simplified for now
-        sort = { createdAt: -1 };
-        break;
-      default:
-        sort = { createdAt: -1 };
+    // Aggregation pipeline
+    const pipeline: any[] = [
+      { $match: match },
+      // Lookup genre details
+      {
+        $lookup: {
+          from: 'genres',
+          localField: 'genre',
+          foreignField: '_id',
+          as: 'genreDetails',
+        },
+      },
+      {
+        $unwind: {
+          path: '$genreDetails',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      // Lookup reviews
+      {
+        $lookup: {
+          from: 'reviews',
+          localField: '_id',
+          foreignField: 'bookId',
+          as: 'reviews',
+        },
+      },
+      // Calculate average rating (handle null/empty reviews)
+      {
+        $addFields: {
+          avgRating: {
+            $cond: {
+              if: { $gt: [{ $size: '$reviews' }, 0] },
+              then: { $avg: '$reviews.rating' },
+              else: 0, // Default to 0 if no reviews
+            },
+          },
+        },
+      },
+      // Lookup Library to count shelves
+      {
+        $lookup: {
+          from: 'libraries',
+          localField: '_id',
+          foreignField: 'book',
+          as: 'shelves',
+        },
+      },
+      {
+        $addFields: {
+          shelvedCount: { $size: '$shelves' },
+        },
+      },
+      // Filter by rating range (after calculating avgRating)
+      {
+        $match: {
+          $expr: {
+            $and: [
+              { $gte: ['$avgRating', ratingMin] },
+              { $lte: ['$avgRating', ratingMax] },
+            ],
+          },
+        },
+      },
+      {
+        $project: {
+          title: 1,
+          author: 1,
+          genre: {
+            _id: '$genreDetails._id',
+            name: '$genreDetails.name',
+          },
+          coverImage: 1,
+          avgRating: 1,
+          shelvedCount: 1,
+          createdAt: 1,
+        },
+      },
+    ];
+
+    // Sorting
+    if (sortBy === 'rating') {
+      pipeline.push({ $sort: { avgRating: -1, title: 1 } });
+    } else if (sortBy === 'mostShelved') {
+      pipeline.push({ $sort: { shelvedCount: -1, title: 1 } });
+    } else if (sortBy === 'title') {
+      pipeline.push({ $sort: { title: 1 } });
+    } else {
+      pipeline.push({ $sort: { createdAt: -1 } });
     }
 
-    // Get total count
-    const total = await Book.countDocuments(query);
+    // Get total count before pagination
+    const countPipeline = [...pipeline];
+    countPipeline.push({ $count: 'total' });
+    
+    const totalResult = await Book.aggregate(countPipeline);
+    const total = totalResult[0]?.total || 0;
 
-    // Get books with limited fields (Title, Author, Genre, Cover Image)
-    const books = await Book.find(query)
-      .select('title author genre coverImage')
-      .populate('genre', 'name')
-      .sort(sort)
-      .skip(skip)
-      .limit(limit);
+    // Add pagination to main pipeline
+    pipeline.push({ $skip: skip }, { $limit: limit });
+
+    const books = await Book.aggregate(pipeline);
 
     res.status(200).json({
       success: true,
@@ -132,6 +205,7 @@ export const getBooks = async (req: Request, res: Response) => {
     });
   }
 };
+
 
 // GET SINGLE BOOK 
 export const getBook = async (req: Request, res: Response) => {
